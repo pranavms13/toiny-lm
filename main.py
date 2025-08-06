@@ -8,6 +8,7 @@ import re
 from typing import List, Tuple, Dict
 import json
 import os
+from data_loader import DataLoader as HFDataLoader, print_available_datasets
 
 # Check if Metal GPU is available
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
@@ -357,12 +358,39 @@ def generate_chat_response(model: ChatMLLM, tokenizer: ChatMLTokenizer,
     generated_text = tokenizer.decode(generated_tokens)
     return generated_text
 
-def main():
-    """Main function to train and test the ChatML LLM"""
+def main(dataset_name: str = None, max_samples: int = None):
+    """Main function to train and test the ChatML LLM
     
-    # Load training data
-    with open('tiny_corpus.txt', 'r', encoding='utf-8') as f:
-        text = f.read()
+    Args:
+        dataset_name: Hugging Face dataset name (e.g., "dim/norquinal_claude_multiround_chat_30k")
+        max_samples: Maximum number of samples to use from dataset
+    """
+    
+    # Initialize data loader
+    data_loader = HFDataLoader()
+    
+    # Load training data - try Hugging Face dataset first, then fallback to local file
+    text = None
+    
+    if dataset_name:
+        try:
+            print(f"Attempting to load Hugging Face dataset: {dataset_name}")
+            text = data_loader.load_data(dataset_name=dataset_name, max_samples=max_samples)
+            print(f"Successfully loaded data from {dataset_name}")
+        except Exception as e:
+            print(f"Failed to load dataset {dataset_name}: {e}")
+            print("Falling back to local file...")
+    
+    # Fallback to local file if dataset loading failed or wasn't specified
+    if text is None:
+        try:
+            text = data_loader.load_data(local_file='tiny_corpus.txt')
+            print("Successfully loaded data from local file: tiny_corpus.txt")
+        except Exception as e:
+            print(f"Failed to load local file: {e}")
+            print("\nAvailable Hugging Face datasets:")
+            print_available_datasets()
+            raise ValueError("Could not load any training data. Please check your dataset name or ensure tiny_corpus.txt exists.")
     
     print(f"Training text length: {len(text)} characters")
     
@@ -430,4 +458,19 @@ def main():
     print("\nModel saved to 'output/chatml_llm.pth'")
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Train ChatML Language Model")
+    parser.add_argument("--dataset", type=str, default=None, 
+                       help="Hugging Face dataset name (e.g., 'dim/norquinal_claude_multiround_chat_30k')")
+    parser.add_argument("--max-samples", type=int, default=None,
+                       help="Maximum number of samples to use from dataset")
+    parser.add_argument("--list-datasets", action="store_true",
+                       help="List available Hugging Face datasets")
+    
+    args = parser.parse_args()
+    
+    if args.list_datasets:
+        print_available_datasets()
+    else:
+        main(dataset_name=args.dataset, max_samples=args.max_samples)

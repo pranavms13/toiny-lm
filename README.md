@@ -67,14 +67,28 @@ uv sync
 
 ### 1. Training the Model
 
-To train the model on the provided ChatML corpus:
+#### Using Hugging Face Datasets (Recommended)
+
+```bash
+# List available datasets
+python main.py --list-datasets
+
+# Train with a multi-turn conversation dataset (recommended)
+python main.py --dataset "dim/norquinal_claude_multiround_chat_30k" --max-samples 5000
+
+# Train with high-quality Puffin dataset
+python main.py --dataset "LDJnr/Puffin"
+```
+
+#### Using Local File (Original)
 
 ```bash
 python main.py
 ```
 
 This will:
-- Load the training text from `tiny_corpus.txt` (in ChatML format)
+- Load training data (Hugging Face dataset if specified, otherwise `tiny_corpus.txt`)
+- Automatically convert to ChatML format
 - Create a word-level tokenizer with ChatML special tokens
 - Train the transformer model for 15 epochs
 - Generate sample responses
@@ -103,8 +117,20 @@ In interactive mode, you can:
 ### 3. Example Commands
 
 ```bash
-# Train the model
+# List available Hugging Face datasets
+python main.py --list-datasets
+
+# Train with Hugging Face dataset
+python main.py --dataset "LDJnr/Puffin"
+
+# Train with limited samples from a large dataset
+python main.py --dataset "dim/norquinal_claude_multiround_chat_30k" --max-samples 1000
+
+# Train with local file (default)
 python main.py
+
+# Test dataset loading
+python test_datasets.py
 
 # Generate example responses
 python inference.py
@@ -115,11 +141,50 @@ python inference.py --interactive
 
 ## Training Data
 
-The model comes with a ChatML-formatted corpus in `tiny_corpus.txt` containing conversations about AI, machine learning, and technology. You can:
+The model supports multiple data sources:
+
+### Hugging Face Datasets (NEW!)
+
+You can now train on multi-turn conversation datasets from Hugging Face:
+
+```bash
+# List available datasets
+python main.py --list-datasets
+
+# Train with a specific dataset
+python main.py --dataset "dim/norquinal_claude_multiround_chat_30k" --max-samples 1000
+
+# Train with LDJnr/Puffin dataset
+python main.py --dataset "LDJnr/Puffin"
+```
+
+**Supported Datasets:**
+- `dim/norquinal_claude_multiround_chat_30k` - 30k multi-round conversations with Claude
+- `LDJnr/Puffin` - High-quality multi-turn conversations covering various topics
+- `argilla/synthetic-sft-customer-support-multi-turn` - Synthetic customer support conversations
+
+### Local File (Original)
+
+The model also comes with a local ChatML-formatted corpus in `tiny_corpus.txt` containing conversations about AI, machine learning, and technology. You can:
 
 1. **Expand the corpus**: Add more ChatML conversations to `tiny_corpus.txt`
 2. **Use your own data**: Replace the content with your own ChatML conversations
 3. **Add more diverse topics**: Include different subjects and conversation styles
+
+### Data Format
+
+All datasets are automatically converted to ChatML format:
+```
+<|im_start|>system
+You are a helpful AI assistant that provides informative and accurate responses.
+<|im_end|>
+<|im_start|>user
+Your question here
+<|im_end|>
+<|im_start|>assistant
+Assistant response here
+<|im_end|>
+```
 
 ## Customization
 
