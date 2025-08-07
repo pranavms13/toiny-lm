@@ -1,5 +1,9 @@
 # Toiny-LM: A ChatML Language Model
 
+> [!IMPORTANT]
+> Vibe coded project. Just for fun
+
+
 A simple implementation of a transformer-based language model that uses OpenAI's ChatML format and can run on your MacBook's Metal GPU. This project demonstrates the core concepts behind modern conversational AI models in a simplified, educational format.
 
 ## Features
